@@ -45,7 +45,7 @@ export default {
         if (body.rightsConfirmed !== true) return json({ error: "Please confirm you have permission to share this content" }, 400);
 
         const recent = await env.DB.prepare(
-          "SELECT COUNT(*) AS total FROM submissions WHERE contact_email = ? AND created_at >= datetime('now','-1 hour')"
+          "SELECT COUNT(*) AS total FROM submissions WHERE contact_email = ? AND created_at >= strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 hour')"
         ).bind(email).first();
         if ((recent?.total || 0) >= 3) return json({ error: "This email has reached the hourly submission limit. Please try again later." }, 429);
 
