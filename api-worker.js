@@ -147,6 +147,23 @@ export default {
           return json({ items: result.results || [], count: (result.results || []).length });
         }
 
+        if (url.pathname.startsWith("/api/admin/file/") && request.method === "GET") {
+          if (!env.PRODUCT_FILES) return json({ error: "Secure file storage is not configured yet" }, 503);
+          const id = clean(decodeURIComponent(url.pathname.slice("/api/admin/file/".length)), 80);
+          const item = await env.DB.prepare("SELECT file_key, file_name FROM submissions WHERE id = ? AND review_status = 'pending'").bind(id).first();
+          if (!item?.file_key) return json({ error: "No pending file was found" }, 404);
+          const object = await env.PRODUCT_FILES.get(item.file_key);
+          if (!object) return json({ error: "Stored file not found" }, 404);
+          const filename = (item.file_name || "submission-file").replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+          return new Response(object.body, { headers: {
+            "content-type": "application/octet-stream",
+            "content-length": String(object.size),
+            "content-disposition": 'attachment; filename="' + filename + '"',
+            "x-content-type-options": "nosniff",
+            "cache-control": "private, no-store"
+          }});
+        }
+
         if (url.pathname === "/api/admin/review" && request.method === "POST") {
           const body = await request.json().catch(() => null);
           const id = clean(body?.id, 80);
