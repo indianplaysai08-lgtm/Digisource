@@ -193,7 +193,7 @@ export default {
 
       if (request.method !== "GET") return json({ error: "Method not allowed" }, 405);
       const routes = {
-        "/api/products": "SELECT id, title, slug, description, category, creator_name, licence, cover_key, created_at FROM products WHERE status = 'published' AND (? = '' OR title LIKE ? OR description LIKE ? OR category LIKE ?) ORDER BY created_at DESC LIMIT ?",
+        "/api/products": "SELECT id, title, slug, description, category, creator_name, licence, cover_key, CASE WHEN file_key IS NOT NULL THEN 1 ELSE 0 END AS has_file, created_at FROM products WHERE status = 'published' AND (? = '' OR title LIKE ? OR description LIKE ? OR category LIKE ?) ORDER BY created_at DESC LIMIT ?",
         "/api/research": "SELECT id, title, slug, summary, author_name, sources, licence, created_at FROM research WHERE status = 'published' AND (? = '' OR title LIKE ? OR summary LIKE ?) ORDER BY created_at DESC LIMIT ?",
         "/api/datasets": "SELECT id, title, slug, description, format, records_count, source_url, licence, created_at FROM datasets WHERE status = 'published' AND (? = '' OR title LIKE ? OR description LIKE ? OR format LIKE ?) ORDER BY created_at DESC LIMIT ?"
       };
